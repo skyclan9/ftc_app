@@ -53,7 +53,8 @@ public class FtcOpModeRegister implements OpModeRegister {
      * The second parameter is the op mode class property
     */
     //manager.register("name", name.class);
-    manager.register("Joystick_output_opmode", Joystick_output_opmode.class);
+    //manager.register("Joystick_output_opmode", Joystick_output_opmode.class);
+    manager.register("chasee1_teleop", chasee1_teleop.class);
 
   }
 }
