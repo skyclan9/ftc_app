@@ -18,11 +18,8 @@ public class chasee1_teleop extends OpMode{
     DcMotorController.DeviceMode devMode;
     //boolean climb = false;
     int climb_pow = 0;
-
-
-    public chasee1_teleop (){
-
-    }
+    
+    public chasee1_teleop (){}
 
     @Override
     public void init(){
@@ -66,10 +63,6 @@ public class chasee1_teleop extends OpMode{
         telemetry.addData("Left Motor Power","Left Power:"+left);
         telemetry.addData("Right Motor Power","Right Power:"+right);
         telemetry.addData("Climber", "Climber:"+climb_pow);
-
-    }
-    @Override
-    public void stop(){
 
     }
 }
