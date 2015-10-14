@@ -41,7 +41,7 @@ public class chasee1_teleop extends OpMode{
     @Override
     public void loop(){
         float left = -gamepad1.left_stick_y;
-        float right = -gamepad1.right_stick_y;
+        float right = gamepad1.right_stick_y;
         leftback.setPower(left);
         leftfront.setPower(left);
         rightback.setPower(right);
@@ -56,14 +56,10 @@ public class chasee1_teleop extends OpMode{
         }
         */
         if (gamepad1.left_bumper) {
-            if (climb_pow == 0) {
-                climb_pow = 100;
-                climber.setPower(climb_pow);
-            }
-            else {
-                climb_pow = 0;
-                climber.setPower(climb_pow);
-            }
+            climber.setPower(-1);
+        }
+        if (gamepad1.right_bumper) {
+            climber.setPower(0);
         }
 
         telemetry.addData("Text", "***Robot Data***");
