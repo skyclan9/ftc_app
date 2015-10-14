@@ -16,7 +16,8 @@ public class chasee1_teleop extends OpMode{
     DcMotorController left_controller;
     DcMotorController right_controller;
     DcMotorController.DeviceMode devMode;
-    boolean climb = false;
+    //boolean climb = false;
+    int climb_pow = 0;
 
 
     public chasee1_teleop (){
@@ -45,7 +46,6 @@ public class chasee1_teleop extends OpMode{
         leftfront.setPower(left);
         rightback.setPower(right);
         rightfront.setPower(right);
-
        /* if (gamepad1.left_bumper == true && climb == false){
             climb = true;
             climber.setPower(100);
@@ -55,14 +55,21 @@ public class chasee1_teleop extends OpMode{
             climber.setPower(100);
         }
         */
-        if (gamepad1.left_bumper == true){
-            climber.setPower(100);
+        if (gamepad1.left_bumper) {
+            if (climb_pow == 0) {
+                climb_pow = 100;
+                climber.setPower(climb_pow);
+            }
+            else {
+                climb_pow = 0;
+                climber.setPower(climb_pow);
+            }
         }
-        climber.setPower(0);
 
         telemetry.addData("Text", "***Robot Data***");
         telemetry.addData("Left Motor Power","Left Power:"+left);
         telemetry.addData("Right Motor Power","Right Power:"+right);
+        telemetry.addData("Climber", "Climber:"+climb_pow);
 
     }
     @Override
