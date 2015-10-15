@@ -53,7 +53,7 @@ public class chasee1_teleop extends OpMode{
         }
         */
         if (gamepad1.left_bumper) {
-            climber.setPower(-1);
+            climber.setPower(-.5);
         }
         if (gamepad1.right_bumper) {
             climber.setPower(0);
