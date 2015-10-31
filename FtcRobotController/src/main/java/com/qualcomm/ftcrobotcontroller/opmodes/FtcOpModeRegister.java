@@ -56,5 +56,6 @@ public class FtcOpModeRegister implements OpModeRegister {
     //manager.register("Joystick_output_opmode", Joystick_output_opmode.class);
     manager.register("chasee1_teleop", chasee1_teleop.class);
     manager.register("tread_teleop", tread_teleop.class);
+    manager.register("Dhruv_tread", driveTest.class);
   }
 }

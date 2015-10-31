@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.util.Range;
  * Created by michaelgoldschlager on 10/23/15.
  */
 public class tread_teleop extends OpMode {
-    DcMotor left_motor;
-    DcMotor right_motor;
+    DcMotor left;
+    DcMotor right;
     DcMotorController motors;
     DcMotorController.DeviceMode devMode;
 
@@ -18,8 +18,8 @@ public class tread_teleop extends OpMode {
 
     @Override
     public void init() {
-        left_motor = hardwareMap.dcMotor.get("left");
-        right_motor = hardwareMap.dcMotor.get("right");
+        left = hardwareMap.dcMotor.get("left_motor");
+        right = hardwareMap.dcMotor.get("right_motor");
         motors = hardwareMap.dcMotorController.get("motors");
         devMode = DcMotorController.DeviceMode.WRITE_ONLY;
 
@@ -34,8 +34,8 @@ public class tread_teleop extends OpMode {
         right_pow = (float) scaleInput(right_pow);
         left_pow = (float) scaleInput(left_pow);
 
-        right_motor.setPower(right_pow);
-        left_motor.setPower(left_pow);
+        right.setPower(right_pow);
+        left.setPower(left_pow);
 
 
         telemetry.addData("Text", "***Robot Data***");
