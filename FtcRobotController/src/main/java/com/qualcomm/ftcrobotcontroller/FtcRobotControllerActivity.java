@@ -33,6 +33,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.hardware.Camera;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -50,6 +51,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.net.Uri;
+import android.hardware.Camera.*;
 
 import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.ftccommon.FtcEventLoop;
@@ -66,7 +68,7 @@ import com.qualcomm.robotcore.util.ImmersiveMode;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.wifi.WifiDirectAssistant;
 
-import java.io.File;
+import java.io.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
@@ -108,6 +110,7 @@ public class FtcRobotControllerActivity extends Activity {
 
   private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
   private Uri fileUri;
+  public static Camera my_Camera;
 
   protected class RobotRestarter implements Restarter {
 
@@ -182,7 +185,6 @@ public class FtcRobotControllerActivity extends Activity {
     if (USE_DEVICE_EMULATION) { HardwareFactory.enableDeviceEmulation(); }
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_ftc_controller);
-
     // create Intent to take a picture and return control to the calling application
     Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -190,7 +192,20 @@ public class FtcRobotControllerActivity extends Activity {
     intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
 
     // start the image capture Intent
-    startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+    int duration = Toast.LENGTH_SHORT;
+    try {
+      startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+      //my_Camera.open(2);
+      my_Camera.takePicture(null,null,mPicture);
+
+    }
+    catch (Exception ex) {
+      Toast toast = Toast.makeText(context, "Broke "+ex.toString(), Toast.LENGTH_LONG);
+      toast.show();
+
+      //Toast.makeText(this, "broke", duration).show();
+      //Toast.makeText(getApplicationContext(), "Does Not Support Bluetooth!", Toast.LENGTH_LONG).show();
+    }
   }
 
   @Override
@@ -399,12 +414,12 @@ public class FtcRobotControllerActivity extends Activity {
     });
   }
   /** Create a file Uri for saving an image or video */
-  private static Uri getOutputMediaFileUri(int type){
+  public static Uri getOutputMediaFileUri(int type){
     return Uri.fromFile(getOutputMediaFile(type));
   }
 
   /** Create a File for saving an image or video */
-  private static File getOutputMediaFile(int type){
+  public static File getOutputMediaFile(int type){
     // To be safe, you should check that the SDCard is mounted
     // using Environment.getExternalStorageState() before doing this.
 
@@ -436,4 +451,22 @@ public class FtcRobotControllerActivity extends Activity {
 
     return mediaFile;
   }
+
+  PictureCallback mPicture = new PictureCallback() {
+    @Override
+    public void onPictureTaken(byte[] data, Camera camera) {
+      File pictureFile = getOutputMediaFile(1);
+      if (pictureFile == null) {
+        return;
+      }
+      try {
+        FileOutputStream fos = new FileOutputStream(pictureFile);
+        fos.write(data);
+        fos.close();
+      } catch (FileNotFoundException e) {
+      } catch (IOException e) {
+      }
+    }
+  };
+
 }
