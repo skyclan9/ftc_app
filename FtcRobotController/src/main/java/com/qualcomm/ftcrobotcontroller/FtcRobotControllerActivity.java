@@ -52,6 +52,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.net.Uri;
 import android.hardware.Camera.*;
+import android.hardware.camera2.*;
+
 
 import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.ftccommon.FtcEventLoop;
