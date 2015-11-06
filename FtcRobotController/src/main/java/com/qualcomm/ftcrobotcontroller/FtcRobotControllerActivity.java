@@ -33,13 +33,12 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.hardware.Camera;
 import android.hardware.usb.UsbManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -50,10 +49,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.net.Uri;
-import android.hardware.Camera.*;
-import android.hardware.camera2.*;
-
+import android.hardware.Camera;
 
 import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.ftccommon.FtcEventLoop;
@@ -70,12 +66,15 @@ import com.qualcomm.robotcore.util.ImmersiveMode;
 import com.qualcomm.robotcore.util.RobotLog;
 import com.qualcomm.robotcore.wifi.WifiDirectAssistant;
 
-import java.io.*;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 
 public class FtcRobotControllerActivity extends Activity {
 
@@ -84,8 +83,6 @@ public class FtcRobotControllerActivity extends Activity {
   private static final int NUM_GAMEPADS = 2;
 
   public static final String CONFIGURE_FILENAME = "CONFIGURE_FILENAME";
-  private static final int MEDIA_TYPE_IMAGE =1;
-  private static final int MEDIA_TYPE_VIDEO = 2;
 
   protected SharedPreferences preferences;
 
@@ -110,9 +107,6 @@ public class FtcRobotControllerActivity extends Activity {
 
   protected FtcEventLoop eventLoop;
 
-  private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-  private Uri fileUri;
-  public static Camera my_Camera;
 
   protected class RobotRestarter implements Restarter {
 
@@ -187,27 +181,9 @@ public class FtcRobotControllerActivity extends Activity {
     if (USE_DEVICE_EMULATION) { HardwareFactory.enableDeviceEmulation(); }
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_ftc_controller);
-    // create Intent to take a picture and return control to the calling application
-    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-    fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE); // create a file to save the image
-    intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
-
-    // start the image capture Intent
-    int duration = Toast.LENGTH_SHORT;
-    try {
-      startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-      //my_Camera.open(2);
-      my_Camera.takePicture(null,null,mPicture);
-
-    }
-    catch (Exception ex) {
-      Toast toast = Toast.makeText(context, "Broke "+ex.toString(), Toast.LENGTH_LONG);
-      toast.show();
-
-      //Toast.makeText(this, "broke", duration).show();
-      //Toast.makeText(getApplicationContext(), "Does Not Support Bluetooth!", Toast.LENGTH_LONG).show();
-    }
+    Camera my_cam = Camera.open(1);
+    my_cam.takePicture(null,null,mPicture);
   }
 
   @Override
@@ -415,13 +391,11 @@ public class FtcRobotControllerActivity extends Activity {
       }
     });
   }
-  /** Create a file Uri for saving an image or video */
-  public static Uri getOutputMediaFileUri(int type){
-    return Uri.fromFile(getOutputMediaFile(type));
-  }
+  public static final int MEDIA_TYPE_IMAGE = 1;
+  public static final int MEDIA_TYPE_VIDEO = 2;
 
   /** Create a File for saving an image or video */
-  public static File getOutputMediaFile(int type){
+  private static File getOutputMediaFile(int type){
     // To be safe, you should check that the SDCard is mounted
     // using Environment.getExternalStorageState() before doing this.
 
@@ -453,22 +427,21 @@ public class FtcRobotControllerActivity extends Activity {
 
     return mediaFile;
   }
+    Camera.PictureCallback mPicture = new Camera.PictureCallback() {
+      @Override
+      public void onPictureTaken(byte[] data, Camera camera) {
+        File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+        if (pictureFile == null) {
+          return;
+        }
+        try {
+          FileOutputStream fos = new FileOutputStream(pictureFile);
+          fos.write(data);
+          fos.close();
+        } catch (FileNotFoundException e) {
 
-  PictureCallback mPicture = new PictureCallback() {
-    @Override
-    public void onPictureTaken(byte[] data, Camera camera) {
-      File pictureFile = getOutputMediaFile(1);
-      if (pictureFile == null) {
-        return;
+        } catch (IOException e) {
+        }
       }
-      try {
-        FileOutputStream fos = new FileOutputStream(pictureFile);
-        fos.write(data);
-        fos.close();
-      } catch (FileNotFoundException e) {
-      } catch (IOException e) {
-      }
-    }
-  };
-
+    };
 }
