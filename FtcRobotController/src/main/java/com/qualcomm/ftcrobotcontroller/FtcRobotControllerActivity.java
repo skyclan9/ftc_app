@@ -34,7 +34,6 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.hardware.usb.UsbManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
@@ -181,9 +180,6 @@ public class FtcRobotControllerActivity extends Activity {
     if (USE_DEVICE_EMULATION) { HardwareFactory.enableDeviceEmulation(); }
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_ftc_controller);
-
-    Camera my_cam = Camera.open(1);
-    my_cam.takePicture(null,null,mPicture);
   }
 
   @Override
@@ -391,57 +387,5 @@ public class FtcRobotControllerActivity extends Activity {
       }
     });
   }
-  public static final int MEDIA_TYPE_IMAGE = 1;
-  public static final int MEDIA_TYPE_VIDEO = 2;
 
-  /** Create a File for saving an image or video */
-  private static File getOutputMediaFile(int type){
-    // To be safe, you should check that the SDCard is mounted
-    // using Environment.getExternalStorageState() before doing this.
-
-    File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_PICTURES), "CustomCamera");
-    // This location works best if you want the created images to be shared
-    // between applications and persist after your app has been uninstalled.
-
-    // Create the storage directory if it does not exist
-    if (! mediaStorageDir.exists()){
-      if (! mediaStorageDir.mkdirs()){
-        Log.d("CustomCamera", "failed to create directory");
-        return null;
-      }
-    }
-
-    // Create a media file name
-    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-    File mediaFile;
-    if (type == MEDIA_TYPE_IMAGE){
-      mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-              "IMG_"+ timeStamp + ".jpg");
-    } else if(type == MEDIA_TYPE_VIDEO) {
-      mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-              "VID_"+ timeStamp + ".mp4");
-    } else {
-      return null;
-    }
-
-    return mediaFile;
-  }
-    Camera.PictureCallback mPicture = new Camera.PictureCallback() {
-      @Override
-      public void onPictureTaken(byte[] data, Camera camera) {
-        File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
-        if (pictureFile == null) {
-          return;
-        }
-        try {
-          FileOutputStream fos = new FileOutputStream(pictureFile);
-          fos.write(data);
-          fos.close();
-        } catch (FileNotFoundException e) {
-
-        } catch (IOException e) {
-        }
-      }
-    };
 }
