@@ -33,14 +33,12 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.hardware.Camera;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -51,9 +49,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.net.Uri;
-import android.hardware.Camera.*;
-import android.hardware.camera2.*;
-
 
 import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.ftccommon.FtcEventLoop;
@@ -84,8 +79,6 @@ public class FtcRobotControllerActivity extends Activity {
   private static final int NUM_GAMEPADS = 2;
 
   public static final String CONFIGURE_FILENAME = "CONFIGURE_FILENAME";
-  private static final int MEDIA_TYPE_IMAGE =1;
-  private static final int MEDIA_TYPE_VIDEO = 2;
 
   protected SharedPreferences preferences;
 
@@ -110,9 +103,6 @@ public class FtcRobotControllerActivity extends Activity {
 
   protected FtcEventLoop eventLoop;
 
-  private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-  private Uri fileUri;
-  public static Camera my_Camera;
 
   protected class RobotRestarter implements Restarter {
 
@@ -187,27 +177,8 @@ public class FtcRobotControllerActivity extends Activity {
     if (USE_DEVICE_EMULATION) { HardwareFactory.enableDeviceEmulation(); }
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_ftc_controller);
-    // create Intent to take a picture and return control to the calling application
-    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    dispatchTakePictureIntent();
 
-    fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE); // create a file to save the image
-    intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
-
-    // start the image capture Intent
-    int duration = Toast.LENGTH_SHORT;
-    try {
-      startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-      //my_Camera.open(2);
-      my_Camera.takePicture(null,null,mPicture);
-
-    }
-    catch (Exception ex) {
-      Toast toast = Toast.makeText(context, "Broke "+ex.toString(), Toast.LENGTH_LONG);
-      toast.show();
-
-      //Toast.makeText(this, "broke", duration).show();
-      //Toast.makeText(getApplicationContext(), "Does Not Support Bluetooth!", Toast.LENGTH_LONG).show();
-    }
   }
 
   @Override
@@ -415,60 +386,44 @@ public class FtcRobotControllerActivity extends Activity {
       }
     });
   }
-  /** Create a file Uri for saving an image or video */
-  public static Uri getOutputMediaFileUri(int type){
-    return Uri.fromFile(getOutputMediaFile(type));
-  }
+  String mCurrentPhotoPath;
 
-  /** Create a File for saving an image or video */
-  public static File getOutputMediaFile(int type){
-    // To be safe, you should check that the SDCard is mounted
-    // using Environment.getExternalStorageState() before doing this.
-
-    File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_PICTURES), "MyCameraApp");
-    // This location works best if you want the created images to be shared
-    // between applications and persist after your app has been uninstalled.
-
-    // Create the storage directory if it does not exist
-    if (! mediaStorageDir.exists()){
-      if (! mediaStorageDir.mkdirs()){
-        Log.d("MyCameraApp", "failed to create directory");
-        return null;
-      }
-    }
-
-    // Create a media file name
+  private File createImageFile() throws IOException {
+    // Create an image file name
     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-    File mediaFile;
-    if (type == MEDIA_TYPE_IMAGE){
-      mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-              "IMG_"+ timeStamp + ".jpg");
-    } else if(type == MEDIA_TYPE_VIDEO) {
-      mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-              "VID_"+ timeStamp + ".mp4");
-    } else {
-      return null;
-    }
+    String imageFileName = "JPEG_" + timeStamp + "_";
+    File storageDir = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_PICTURES);
+    File image = File.createTempFile(
+            imageFileName,  /* prefix */
+            ".jpg",         /* suffix */
+            storageDir      /* directory */
+    );
 
-    return mediaFile;
+    // Save a file: path for use with ACTION_VIEW intents
+    mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+    return image;
   }
 
-  PictureCallback mPicture = new PictureCallback() {
-    @Override
-    public void onPictureTaken(byte[] data, Camera camera) {
-      File pictureFile = getOutputMediaFile(1);
-      if (pictureFile == null) {
-        return;
-      }
+  static final int REQUEST_TAKE_PHOTO = 1;
+
+  private void dispatchTakePictureIntent() {
+    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    // Ensure that there's a camera activity to handle the intent
+    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+      // Create the File where the photo should go
+      File photoFile = null;
       try {
-        FileOutputStream fos = new FileOutputStream(pictureFile);
-        fos.write(data);
-        fos.close();
-      } catch (FileNotFoundException e) {
-      } catch (IOException e) {
+        photoFile = createImageFile();
+      } catch (IOException ex) {
+        // Error occurred while creating the File
+      }
+      // Continue only if the File was successfully created
+      if (photoFile != null) {
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                Uri.fromFile(photoFile));
+        startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
       }
     }
-  };
-
+  }
 }
