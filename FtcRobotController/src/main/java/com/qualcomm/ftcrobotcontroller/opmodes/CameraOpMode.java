@@ -17,18 +17,21 @@ import java.util.Date;
  * Created by michaelgoldschlager on 11/6/15.
  */
 public class CameraOpMode extends OpMode {
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int MEDIA_TYPE_VIDEO = 2;
+
     @Override
     public void init() {
         Camera my_cam = Camera.open(1);
         my_cam.takePicture(null,null,mPicture);
+        my_cam.release();
     }
 
     @Override
     public void loop() {
     telemetry.addData("message", "Pic has been taken.");
     }
-    public static final int MEDIA_TYPE_IMAGE = 1;
-    public static final int MEDIA_TYPE_VIDEO = 2;
+
 
     /** Create a File for saving an image or video */
     private static File getOutputMediaFile(int type){
@@ -63,7 +66,7 @@ public class CameraOpMode extends OpMode {
 
         return mediaFile;
     }
-    Camera.PictureCallback mPicture = new Camera.PictureCallback() {
+    private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
             File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
